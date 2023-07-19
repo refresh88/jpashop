@@ -2,7 +2,9 @@ package jpabook.jpashop.domain;
 
 import jakarta.persistence.*;
 import jpabook.jpashop.domain.Item.Item;
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import static jakarta.persistence.FetchType.*;
@@ -10,6 +12,7 @@ import static jakarta.persistence.FetchType.*;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderItem {
 
     @Id
@@ -28,4 +31,34 @@ public class OrderItem {
     private int orderPrice; // 주문 가격
 
     private int count; // 주문 수량
+
+    // 이렇게 하면 객체 생성을 막음. 다른방식으로 주문상품을 생성하는것을 막기 위해.
+    // 이거 안쓸거면 애노테이션 사용하면됨. @NoArgsConstructor(access = AccessLevel.PROTECTED)
+//    protected OrderItem() {
+//    }
+
+    //==생성 메서드==//
+    public static OrderItem createOrderItem(Item item, int orderPrice, int count) {
+        OrderItem orderItem = new OrderItem();
+        orderItem.setItem(item);
+        orderItem.setOrderPrice( orderPrice);
+        orderItem.setCount(count);
+
+        item.removeStock(count);
+        return orderItem;
+    }
+
+    //==비즈니스 로직==//
+    public void cancel() {
+        getItem().addStock(count);
+    }
+
+    //==조회 로직==//
+
+    /**
+     * 주문 상품 전체 가격 조회
+     */
+    public int getTotalPrice() {
+        return getOrderPrice() * getCount();
+    }
 }
